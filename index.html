@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Student Attendance System</h1>
+            <p>Track student attendance and send automated notifications</p>
+        </div>
+
+        <div class="form-container">
+            <form id="attendanceForm">
+                <div class="form-group">
+                    <label for="studentName">Student Name <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="studentName" 
+                        placeholder="Enter full name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="studentNumber">Student Number</label>
+                    <input 
+                        type="text" 
+                        id="studentNumber" 
+                        placeholder="(Optional) e.g., STU001"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="parentPhone">Parent/Guardian Phone <span class="required">*</span></label>
+                    <input 
+                        type="tel" 
+                        id="parentPhone" 
+                        placeholder="e.g., +1234567890"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="student@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="section">Section <span class="required">*</span></label>
+                    <select id="section" required>
+                        <option value="">Select Section</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                    </select>
+                </div>
+
+                <div class="form-group attendance-status">
+                    <label>Attendance Status <span class="required">*</span></label>
+                    <div class="status-buttons">
+                        <button type="button" class="status-btn present" data-status="Present">
+                            ✓ Present
+                        </button>
+                        <button type="button" class="status-btn absent" data-status="Absent">
+                            ✗ Absent
+                        </button>
+                        <button type="button" class="status-btn late" data-status="Late">
+                            ⏰ Late
+                        </button>
+                    </div>
+                    <input type="hidden" id="status" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Submit & Send Email</button>
+                    <button type="reset" class="btn-reset">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="records-section">
+            <div class="section-header">
+                <h2>📋 Attendance Records</h2>
+                <div class="export-container">
+                    <button id="exportBtn" class="btn-export">📊 Export to Excel</button>
+                </div>
+            </div>
+
+            <div class="filters">
+                <input 
+                    type="text" 
+                    id="filterSection" 
+                    placeholder="Filter by section..."
+                    class="filter-input"
+                >
+            </div>
+
+            <div id="recordsContainer">
+                <p class="no-records">No attendance records yet</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
