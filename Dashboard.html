@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f3e8ff;
+      text-align: center;
+    }
+
+    .container {
+      background: lavender;
+      width: 350px;
+      margin: auto;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    input, button {
+      width: 90%;
+      padding: 8px;
+      margin: 5px;
+    }
+
+    button {
+      background: #b57edc;
+      color: white;
+      border: none;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    table {
+      width: 95%;
+      margin: auto;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      font-size: 12px;
+      padding: 5px;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body>
+
+<h2>📊 Dashboard Attendance</h2>
+
+<div class="container">
+
+  <!-- QR GENERATOR -->
+  <h3>Generate QR</h3>
+  <input id="qrText" placeholder="Class Code">
+  <button onclick="generateQR()">Create QR</button>
+  <div id="qrBox"></div>
+
+  <hr>
+
+  <!-- STUDENT -->
+  <h3>Student Info</h3>
+  <input id="name" placeholder="Name">
+  <input id="studentNo" placeholder="Student No">
+  <input id="parentNo" placeholder="Parent No">
+  <input id="email" placeholder="Email">
+  <input id="section" placeholder="Section">
+
+  <button onclick="saveStudent()">Save Student</button>
+
+  <hr>
+
+  <!-- CAMERA SCAN (FRONT CAMERA) -->
+  <h3>Front Camera Attendance</h3>
+  <div id="reader"></div>
+  <button onclick="startScan()">Start Scan</button>
+
+</div>
+
+<h3>Attendance Table</h3>
+
+<table id="table">
+  <tr>
+    <th>Name</th>
+    <th>Student No</th>
+    <th>Section</th>
+    <th>Status</th>
+    <th>Date</th>
+    <th>Time</th>
+  </tr>
+</table>
+
+<script>
+/* ================= QR ================= */
+function generateQR() {
+  let text = document.getElementById("qrText").value;
+  if (!text) return alert("Enter code");
+
+  document.getElementById("qrBox").innerHTML = "";
+
+  QRCode.toCanvas(text, function (err, canvas) {
+    document.getElementById("qrBox").appendChild(canvas);
+  });
+}
+
+/* ================= SAVE STUDENT ================= */
+function saveStudent() {
+  let now = new Date();
+
+  let student = {
+    name: document.getElementById("name").value,
+    studentNo: document.getElementById("studentNo").value,
+    parentNo: document.getElementById("parentNo").value,
+    email: document.getElementById("email").value,
+    section: document.getElementById("section").value,
+    status: "Present",
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString()
+  };
+
+  let data = JSON.parse(localStorage.getItem("attendance") || "[]");
+  data.push(student);
+  localStorage.setItem("attendance", JSON.stringify(data));
+
+  addRow(student);
+  alert("Saved!");
+}
+
+/* ================= TABLE ================= */
+function addRow(r) {
+  let table = document.getElementById("table");
+
+  let row = table.insertRow();
+
+  row.innerHTML = `
+    <td>${r.name}</td>
+    <td>${r.studentNo}</td>
+    <td>${r.section}</td>
+    <td>${r.status}</td>
+    <td>${r.date}</td>
+    <td>${r.time}</td>
+  `;
+}
+
+/* ================= FRONT CAMERA QR SCAN ================= */
+function startScan() {
+  let scanner = new Html5Qrcode("reader");
+
+  scanner.start(
+    { facingMode: "user" },   // 👈 FRONT CAMERA
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      alert("QR: " + decodedText);
+
+      let data = JSON.parse(localStorage.getItem("attendance") || "[]");
+
+      let now = new Date();
+
+      data.push({
+        name: "QR Student",
+        studentNo: decodedText,
+        section: document.getElementById("section").value,
+        status: "Present (QR)",
+        date: now.toLocaleDateString(),
+        time: now.toLocaleTimeString()
+      });
+
+      localStorage.setItem("attendance", JSON.stringify(data));
+
+      location.reload();
+    }
+  );
+}
+
+/* LOAD DATA ON OPEN */
+window.onload = function () {
+  let data = JSON.parse(localStorage.getItem("attendance") || "[]");
+  data.forEach(addRow);
+};
+</script>
+
+</body>
+</html>
