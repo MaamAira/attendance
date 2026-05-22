@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attendance System</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f3e8ff;
+      text-align: center;
+    }
+
+    h2 {
+      color: #5a2a82;
+    }
+
+    .container {
+      background: lavender;
+      padding: 20px;
+      width: 320px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #aaa;
+    }
+
+    input, select {
+      width: 90%;
+      margin: 5px;
+      padding: 8px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px;
+      background: #b57edc;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 95%;
+      margin: auto;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 5px;
+      font-size: 12px;
+    }
+
+    video {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    img {
+      width: 50px;
+      height: 50px;
+    }
+  </style>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <!-- Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+<h2>📋 Attendance System</h2>
+
+<div class="container">
+
+  <input id="name" placeholder="Student Name">
+  <input id="studentNo" placeholder="Student No (optional)">
+  <input id="parentNo" placeholder="Parent Number">
+  <input id="email" placeholder="Email">
+
+  <select id="section">
+    <option>Section A</option>
+    <option>Section B</option>
+    <option>Section C</option>
+  </select>
+
+  <video id="video" autoplay></video>
+  <button onclick="capture()">📸 Capture Photo</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <br>
+
+  <button onclick="mark('Present')">Present</button>
+  <button onclick="mark('Absent')">Absent</button>
+
+  <button onclick="exportExcel()">⬇ Export Excel</button>
+
+</div>
+
+<table id="table">
+  <tr>
+    <th>Name</th>
+    <th>Student No</th>
+    <th>Parent No</th>
+    <th>Email</th>
+    <th>Section</th>
+    <th>Status</th>
+    <th>Time</th>
+    <th>Photo</th>
+  </tr>
+</table>
+
+<script>
+/* ================= EMAILJS SETUP ================= */
+emailjs.init("YOUR_PUBLIC_KEY"); // 🔴 CHANGE THIS
+
+let photoData = "";
+
+/* ================= CAMERA ================= */
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+  document.getElementById("video").srcObject = stream;
+});
+
+/* ================= CAPTURE PHOTO ================= */
+function capture() {
+  let video = document.getElementById("video");
+  let canvas = document.getElementById("canvas");
+
+  canvas.width = 200;
+  canvas.height = 150;
+
+  let ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, 200, 150);
+
+  photoData = canvas.toDataURL("image/png");
+  alert("Photo Captured!");
+}
+
+/* ================= MARK ATTENDANCE ================= */
+function mark(status) {
+  let data = {
+    name: document.getElementById("name").value,
+    studentNo: document.getElementById("studentNo").value,
+    parentNo: document.getElementById("parentNo").value,
+    email: document.getElementById("email").value,
+    section: document.getElementById("section").value,
+    status: status,
+    time: new Date().toLocaleString(),
+    photo: photoData
+  };
+
+  saveLocal(data);
+  addRow(data);
+  sendEmail(data);
+}
+
+/* ================= LOCAL STORAGE ================= */
+function saveLocal(record) {
+  let arr = JSON.parse(localStorage.getItem("attendance") || "[]");
+  arr.push(record);
+  localStorage.setItem("attendance", JSON.stringify(arr));
+}
+
+/* ================= TABLE ================= */
+function addRow(r) {
+  let table = document.getElementById("table");
+
+  let row = table.insertRow();
+
+  row.innerHTML = `
+    <td>${r.name}</td>
+    <td>${r.studentNo}</td>
+    <td>${r.parentNo}</td>
+    <td>${r.email}</td>
+    <td>${r.section}</td>
+    <td>${r.status}</td>
+    <td>${r.time}</td>
+    <td><img src="${r.photo}"></td>
+  `;
+}
+
+/* ================= EMAIL SEND ================= */
+function sendEmail(r) {
+  let templateParams = {
+    name: r.name,
+    email: r.email,
+    status: r.status,
+    time: r.time
+  };
+
+  emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", templateParams)
+    .then(() => console.log("Email sent"))
+    .catch(err => console.log(err));
+}
+
+/* ================= EXPORT EXCEL ================= */
+function exportExcel() {
+  let data = JSON.parse(localStorage.getItem("attendance") || "[]");
+
+  let ws = XLSX.utils.json_to_sheet(data);
+  let wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+  XLSX.writeFile(wb, "attendance.xlsx");
+}
+</script>
+
+</body>
+</html>
