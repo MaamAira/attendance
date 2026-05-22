@@ -1,0 +1,544 @@
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+:root {
+    --primary-lavender: #e6e6fa;
+    --secondary-lavender: #d8bfd8;
+    --dark-lavender: #9370db;
+    --light-lavender: #f0f0ff;
+    --present-green: #4caf50;
+    --absent-red: #f44336;
+    --late-orange: #ff9800;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --border-light: #ddd;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e6e6fa 0%, #f0f0ff 100%);
+    color: var(--text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ============================================
+   CONTAINER & LAYOUT
+   ============================================ */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(135deg, #9370db, #d8bfd8);
+    color: white;
+    padding: 40px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header p {
+    font-size: 1.1em;
+    opacity: 0.95;
+}
+
+/* ============================================
+   FORM CONTAINER
+   ============================================ */
+.form-container {
+    padding: 40px;
+    background: linear-gradient(to bottom, #f9f7ff, #ffffff);
+    border-bottom: 2px solid var(--primary-lavender);
+}
+
+#attendanceForm {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    max-width: 1000px;
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--dark-lavender);
+    font-size: 0.95em;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 15px;
+    border: 2px solid var(--primary-lavender);
+    border-radius: 8px;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--text-dark);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--dark-lavender);
+    box-shadow: 0 0 0 3px rgba(147, 112, 219, 0.1);
+    background: var(--light-lavender);
+}
+
+.form-group input::placeholder {
+    color: #999;
+}
+
+.required {
+    color: var(--absent-red);
+    font-weight: bold;
+    margin-left: 4px;
+}
+
+/* ============================================
+   ATTENDANCE STATUS BUTTONS
+   ============================================ */
+.attendance-status {
+    grid-column: 1 / -1;
+}
+
+.status-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.status-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--text-dark);
+}
+
+.status-btn.present {
+    border-color: var(--present-green);
+    color: var(--present-green);
+}
+
+.status-btn.present.active {
+    background: var(--present-green);
+    color: white;
+}
+
+.status-btn.absent {
+    border-color: var(--absent-red);
+    color: var(--absent-red);
+}
+
+.status-btn.absent.active {
+    background: var(--absent-red);
+    color: white;
+}
+
+.status-btn.late {
+    border-color: var(--late-orange);
+    color: var(--late-orange);
+}
+
+.status-btn.late.active {
+    background: var(--late-orange);
+    color: white;
+}
+
+.status-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* ============================================
+   FORM ACTIONS
+   ============================================ */
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-submit,
+.btn-reset {
+    flex: 1;
+    max-width: 300px;
+    padding: 14px 28px;
+    font-size: 1em;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #9370db, #d8bfd8);
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+.btn-reset {
+    background: #f5f5f5;
+    color: var(--text-dark);
+    border: 2px solid var(--primary-lavender);
+}
+
+.btn-reset:hover {
+    background: var(--primary-lavender);
+}
+
+/* ============================================
+   RECORDS SECTION
+   ============================================ */
+.records-section {
+    padding: 40px;
+    background: #fafafa;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.section-header h2 {
+    color: var(--dark-lavender);
+    font-size: 1.8em;
+}
+
+.export-container {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-export {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #d8bfd8, #9370db);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95em;
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-export:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   FILTERS
+   ============================================ */
+.filters {
+    margin-bottom: 25px;
+}
+
+.filter-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 15px;
+    border: 2px solid var(--primary-lavender);
+    border-radius: 8px;
+    font-size: 0.95em;
+    transition: all 0.3s ease;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--dark-lavender);
+    box-shadow: 0 0 0 3px rgba(147, 112, 219, 0.1);
+}
+
+/* ============================================
+   RECORDS CONTAINER
+   ============================================ */
+#recordsContainer {
+    display: grid;
+    gap: 25px;
+}
+
+.no-records {
+    text-align: center;
+    color: var(--text-light);
+    padding: 40px;
+    font-size: 1.1em;
+    background: white;
+    border-radius: 8px;
+    border: 2px dashed var(--primary-lavender);
+}
+
+/* ============================================
+   SECTION GROUPS
+   ============================================ */
+.section-group {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.section-title {
+    background: linear-gradient(135deg, #d8bfd8, #e6e6fa);
+    padding: 15px 20px;
+    font-weight: 700;
+    color: var(--dark-lavender);
+    font-size: 1.2em;
+    border-left: 5px solid #9370db;
+}
+
+.section-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow-x: auto;
+}
+
+.section-table thead {
+    background: var(--light-lavender);
+}
+
+.section-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--dark-lavender);
+    border-bottom: 2px solid var(--primary-lavender);
+    font-size: 0.95em;
+}
+
+.section-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-dark);
+}
+
+.section-table tbody tr:hover {
+    background: #f9f7ff;
+}
+
+.section-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============================================
+   STATUS BADGE
+   ============================================ */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85em;
+    text-align: center;
+    min-width: 80px;
+}
+
+.status-badge.present {
+    background: #c8e6c9;
+    color: var(--present-green);
+}
+
+.status-badge.absent {
+    background: #ffcdd2;
+    color: var(--absent-red);
+}
+
+.status-badge.late {
+    background: #ffe0b2;
+    color: var(--late-orange);
+}
+
+/* ============================================
+   DELETE BUTTON
+   ============================================ */
+.btn-delete {
+    padding: 6px 12px;
+    background: #ffebee;
+    color: var(--absent-red);
+    border: 1px solid var(--absent-red);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    background: var(--absent-red);
+    color: white;
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+.toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    transition: bottom 0.4s ease;
+    max-width: 400px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.toast.show {
+    bottom: 30px;
+}
+
+.toast.success {
+    border-left: 4px solid var(--present-green);
+    color: var(--present-green);
+}
+
+.toast.error {
+    border-left: 4px solid var(--absent-red);
+    color: var(--absent-red);
+}
+
+.toast.warning {
+    border-left: 4px solid var(--late-orange);
+    color: var(--late-orange);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+    .header {
+        padding: 25px;
+    }
+
+    .header h1 {
+        font-size: 1.8em;
+    }
+
+    .form-container {
+        padding: 25px;
+    }
+
+    #attendanceForm {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-submit,
+    .btn-reset {
+        max-width: none;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .section-table th,
+    .section-table td {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .records-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 1.3em;
+    }
+
+    .header p {
+        font-size: 0.95em;
+    }
+
+    .form-container {
+        padding: 15px;
+    }
+
+    .status-buttons {
+        flex-direction: column;
+    }
+
+    .status-btn {
+        min-width: auto;
+    }
+
+    .section-table th,
+    .section-table td {
+        padding: 8px;
+        font-size: 0.8em;
+    }
+
+    .toast {
+        max-width: 90%;
+        font-size: 0.9em;
+    }
+}
