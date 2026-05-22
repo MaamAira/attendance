@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Attendance System</title>
+  <title>QR Attendance System</title>
 
   <style>
     body {
@@ -10,40 +10,37 @@
       text-align: center;
     }
 
-    h2 {
-      color: #5a2a82;
-    }
-
     .container {
       background: lavender;
-      padding: 20px;
-      width: 320px;
+      padding: 15px;
+      width: 340px;
       margin: auto;
       border-radius: 12px;
-      box-shadow: 0 0 10px #aaa;
     }
 
-    input, select {
+    input, button {
       width: 90%;
       margin: 5px;
       padding: 8px;
     }
 
     button {
-      margin: 5px;
-      padding: 10px;
       background: #b57edc;
       color: white;
       border: none;
       cursor: pointer;
-      border-radius: 5px;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
     }
 
     table {
       width: 95%;
       margin: auto;
-      border-collapse: collapse;
       margin-top: 20px;
+      border-collapse: collapse;
     }
 
     th, td {
@@ -52,55 +49,60 @@
       font-size: 12px;
     }
 
-    video {
-      width: 100%;
-      margin-top: 10px;
-      border-radius: 8px;
-    }
-
-    img {
-      width: 50px;
-      height: 50px;
+    #qrBox {
+      margin: 10px auto;
     }
   </style>
 
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <!-- QR CODE LIB -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <!-- Excel -->
+  <!-- QR SCANNER -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <!-- XLSX -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
 
-<h2>📋 Attendance System</h2>
+<h2>📋 QR Attendance System</h2>
 
 <div class="container">
 
+  <!-- 1. CREATE QR -->
+  <h3>1️⃣ Create QR Code</h3>
+  <input id="qrText" placeholder="Enter Class / Event Code">
+  <button onclick="generateQR()">Generate QR</button>
+  <div id="qrBox"></div>
+
+  <hr>
+
+  <!-- 2. STUDENT FORM -->
+  <h3>2️⃣ Student Form</h3>
   <input id="name" placeholder="Student Name">
   <input id="studentNo" placeholder="Student No (optional)">
   <input id="parentNo" placeholder="Parent Number">
   <input id="email" placeholder="Email">
+  <input id="section" placeholder="Section (type here)">
 
-  <select id="section">
-    <option>Section A</option>
-    <option>Section B</option>
-    <option>Section C</option>
-  </select>
+  <button onclick="saveStudent()">Save Student</button>
 
-  <video id="video" autoplay></video>
-  <button onclick="capture()">📸 Capture Photo</button>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <hr>
 
-  <br>
+  <!-- 3. QR SCANNER -->
+  <h3>3️⃣ Scan QR (Camera)</h3>
+  <div id="reader"></div>
+  <button onclick="startScan()">Start Camera Scan</button>
 
-  <button onclick="mark('Present')">Present</button>
-  <button onclick="mark('Absent')">Absent</button>
+  <hr>
 
+  <!-- EXPORT -->
   <button onclick="exportExcel()">⬇ Export Excel</button>
 
 </div>
 
+<h3>Attendance Records</h3>
 <table id="table">
   <tr>
     <th>Name</th>
@@ -110,68 +112,52 @@
     <th>Section</th>
     <th>Status</th>
     <th>Time</th>
-    <th>Photo</th>
   </tr>
 </table>
 
 <script>
-/* ================= EMAILJS SETUP ================= */
-emailjs.init("YOUR_PUBLIC_KEY"); // 🔴 CHANGE THIS
+let currentQR = "";
 
-let photoData = "";
+/* ================= 1. GENERATE QR ================= */
+function generateQR() {
+  let text = document.getElementById("qrText").value;
 
-/* ================= CAMERA ================= */
-navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => {
-  document.getElementById("video").srcObject = stream;
-});
+  if (!text) return alert("Enter QR text");
 
-/* ================= CAPTURE PHOTO ================= */
-function capture() {
-  let video = document.getElementById("video");
-  let canvas = document.getElementById("canvas");
+  document.getElementById("qrBox").innerHTML = "";
 
-  canvas.width = 200;
-  canvas.height = 150;
+  QRCode.toCanvas(text, function (err, canvas) {
+    document.getElementById("qrBox").appendChild(canvas);
+  });
 
-  let ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, 200, 150);
-
-  photoData = canvas.toDataURL("image/png");
-  alert("Photo Captured!");
+  currentQR = text;
 }
 
-/* ================= MARK ATTENDANCE ================= */
-function mark(status) {
-  let data = {
+/* ================= 2. SAVE STUDENT ================= */
+function saveStudent() {
+  let student = {
     name: document.getElementById("name").value,
     studentNo: document.getElementById("studentNo").value,
     parentNo: document.getElementById("parentNo").value,
     email: document.getElementById("email").value,
     section: document.getElementById("section").value,
-    status: status,
-    time: new Date().toLocaleString(),
-    photo: photoData
+    status: "Present",
+    time: new Date().toLocaleString()
   };
 
-  saveLocal(data);
-  addRow(data);
-  sendEmail(data);
+  let data = JSON.parse(localStorage.getItem("attendance") || "[]");
+  data.push(student);
+  localStorage.setItem("attendance", JSON.stringify(data));
+
+  addRow(student);
+  alert("Student saved!");
 }
 
-/* ================= LOCAL STORAGE ================= */
-function saveLocal(record) {
-  let arr = JSON.parse(localStorage.getItem("attendance") || "[]");
-  arr.push(record);
-  localStorage.setItem("attendance", JSON.stringify(arr));
-}
-
-/* ================= TABLE ================= */
+/* ================= 3. TABLE ================= */
 function addRow(r) {
   let table = document.getElementById("table");
 
   let row = table.insertRow();
-
   row.innerHTML = `
     <td>${r.name}</td>
     <td>${r.studentNo}</td>
@@ -180,25 +166,35 @@ function addRow(r) {
     <td>${r.section}</td>
     <td>${r.status}</td>
     <td>${r.time}</td>
-    <td><img src="${r.photo}"></td>
   `;
 }
 
-/* ================= EMAIL SEND ================= */
-function sendEmail(r) {
-  let templateParams = {
-    name: r.name,
-    email: r.email,
-    status: r.status,
-    time: r.time
-  };
+/* ================= 4. QR SCANNER ================= */
+function startScan() {
+  let scanner = new Html5Qrcode("reader");
 
-  emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", templateParams)
-    .then(() => console.log("Email sent"))
-    .catch(err => console.log(err));
+  scanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 200 },
+    (decodedText) => {
+      alert("QR Scanned: " + decodedText);
+
+      let student = JSON.parse(localStorage.getItem("attendance") || "[]");
+      let last = student[student.length - 1];
+
+      if (last) {
+        last.status = "Present (QR Verified)";
+        last.time = new Date().toLocaleString();
+      }
+
+      localStorage.setItem("attendance", JSON.stringify(student));
+
+      location.reload();
+    }
+  );
 }
 
-/* ================= EXPORT EXCEL ================= */
+/* ================= 5. EXPORT EXCEL ================= */
 function exportExcel() {
   let data = JSON.parse(localStorage.getItem("attendance") || "[]");
 
