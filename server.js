@@ -1,279 +1,172 @@
-// ============================================
-// ATTENDANCE SYSTEM - BACKEND SERVER
-// ============================================
-
-require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
-const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
+
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.static('./'));
+app.use(express.static(path.join(__dirname)));
 
-// ============================================
-// EMAIL CONFIGURATION
-// ============================================
+// Configure Nodemailer
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com',
-        pass: process.env.EMAIL_PASSWORD || 'your-app-password'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
     }
 });
 
-// Verify connection
-transporter.verify((error, success) => {
+// Test email configuration
+transporter.verify((error) => {
     if (error) {
-        console.log('⚠️  Email service not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env');
+        console.warn('⚠️  Email service not configured. Check .env file');
     } else {
         console.log('✅ Email service ready');
     }
 });
 
-// ============================================
-// EMAIL TEMPLATES
-// ============================================
-const emailTemplates = {
-    present: (student) => ({
-        subject: `✅ Attendance Confirmation - ${student.studentName}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f0f0ff; padding: 20px; border-radius: 10px;">
-                <div style="background: linear-gradient(135deg, #9370db, #d8bfd8); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-                    <h1 style="margin: 0; font-size: 28px;">✓ Present</h1>
-                </div>
-                
-                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #9370db; margin-top: 0;">Attendance Recorded</h2>
-                    
-                    <div style="background: #c8e6c9; padding: 15px; border-radius: 6px; border-left: 4px solid #4caf50; margin-bottom: 20px;">
-                        <p style="margin: 0; color: #2e7d32; font-weight: bold;">✓ ${student.studentName} marked as PRESENT</p>
-                    </div>
-                    
-                    <h3 style="color: #666; margin-top: 20px; margin-bottom: 10px;">Student Details:</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #9370db;">Name:</td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${student.studentName}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #9370db;">Student No.:</td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${student.studentNumber}</td>
-                        </tr>
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #9370db;">Section:</td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${student.section}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #9370db;">Time:</td>
-                            <td style="padding: 10px; border: 1px solid #ddd;">${student.date}</td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div style="text-align: center; color: #999; font-size: 12px; border-top: 1px solid #ddd; padding-top: 15px;">
-                    <p>This is an automated message from the Student Attendance System</p>
-                </div>
-            </div>
-        `
-    }),
+/**
+ * Serve index page
+ */
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-    absent: (student) => ({
-        subject: `⚠️  ABSENT - ${student.studentName} Did Not Attend`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff3e0; padding: 20px; border-radius: 10px;">
-                <div style="background: linear-gradient(135deg, #f44336, #ff7043); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-                    <h1 style="margin: 0; font-size: 28px;">✗ ABSENT</h1>
-                </div>
-                
-                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #d32f2f; margin-top: 0;">⚠️  Absence Alert</h2>
-                    
-                    <div style="background: #ffcdd2; padding: 15px; border-radius: 6px; border-left: 4px solid #f44336; margin-bottom: 20px;">
-                        <p style="margin: 0; color: #c62828; font-weight: bold;">Student ${student.studentName} is ABSENT today</p>
-                    </div>
-                    
-                    <h3 style="color: #666; margin-top: 20px; margin-bottom: 10px;">Student Information:</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ffcdd2; font-weight: bold; color: #d32f2f;">Name:</td>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2;">${student.studentName}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2; font-weight: bold; color: #d32f2f;">Student No.:</td>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2;">${student.studentNumber}</td>
-                        </tr>
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ffcdd2; font-weight: bold; color: #d32f2f;">Section:</td>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2;">${student.section}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2; font-weight: bold; color: #d32f2f;">Time Marked:</td>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2;">${student.date}</td>
-                        </tr>
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ffcdd2; font-weight: bold; color: #d32f2f;">Contact:</td>
-                            <td style="padding: 10px; border: 1px solid #ffcdd2;">${student.parentPhone}</td>
-                        </tr>
-                    </table>
-                    
-                    <p style="margin-top: 20px; color: #666; font-style: italic;">
-                        Please follow up with the student or parent/guardian if required.
-                    </p>
-                </div>
-                
-                <div style="text-align: center; color: #999; font-size: 12px; border-top: 1px solid #ffcdd2; padding-top: 15px;">
-                    <p>This is an automated absence notification from the Student Attendance System</p>
-                </div>
-            </div>
-        `
-    }),
-
-    late: (student) => ({
-        subject: `⏰ LATE - ${student.studentName} Arrived Late`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff8e1; padding: 20px; border-radius: 10px;">
-                <div style="background: linear-gradient(135deg, #ff9800, #ffb74d); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-                    <h1 style="margin: 0; font-size: 28px;">⏰ LATE</h1>
-                </div>
-                
-                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <h2 style="color: #e65100; margin-top: 0;">⏰ Late Arrival Alert</h2>
-                    
-                    <div style="background: #ffe0b2; padding: 15px; border-radius: 6px; border-left: 4px solid #ff9800; margin-bottom: 20px;">
-                        <p style="margin: 0; color: #e65100; font-weight: bold;">Student ${student.studentName} arrived LATE</p>
-                    </div>
-                    
-                    <h3 style="color: #666; margin-top: 20px; margin-bottom: 10px;">Student Information:</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ffe0b2; font-weight: bold; color: #e65100;">Name:</td>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2;">${student.studentName}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2; font-weight: bold; color: #e65100;">Student No.:</td>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2;">${student.studentNumber}</td>
-                        </tr>
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ffe0b2; font-weight: bold; color: #e65100;">Section:</td>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2;">${student.section}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2; font-weight: bold; color: #e65100;">Arrival Time:</td>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2;">${student.date}</td>
-                        </tr>
-                        <tr style="background: #f5f5f5;">
-                            <td style="padding: 10px; border: 1px solid #ffe0b2; font-weight: bold; color: #e65100;">Contact:</td>
-                            <td style="padding: 10px; border: 1px solid #ffe0b2;">${student.parentPhone}</td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div style="text-align: center; color: #999; font-size: 12px; border-top: 1px solid #ffe0b2; padding-top: 15px;">
-                    <p>This is an automated message from the Student Attendance System</p>
-                </div>
-            </div>
-        `
-    })
-};
-
-// ============================================
-// API ENDPOINT - SEND EMAIL
-// ============================================
+/**
+ * Send attendance email notification
+ */
 app.post('/api/send-email', async (req, res) => {
     try {
-        const { studentName, studentNumber, email, parentPhone, section, status, date } = req.body;
+        const { studentName, studentNumber, email, parentPhone, section, status, date, time } = req.body;
 
-        // Validate required fields
-        if (!studentName || !email || !status) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        let subject = '';
+        let htmlContent = '';
+        let statusColor = '';
+        let statusIcon = '';
+
+        // Customize email based on status
+        if (status === 'Present') {
+            subject = `✓ Attendance Confirmed - ${studentName} Present on ${date}`;
+            statusColor = '#4CAF50';
+            statusIcon = '✓';
+            htmlContent = `
+                <p>Good news! <strong>${studentName}</strong> has been marked as <strong style="color: ${statusColor};">PRESENT</strong>.</p>
+                <p>Thank you for attending class today!</p>
+            `;
+        } else if (status === 'Absent') {
+            subject = `⚠️  Absence Alert - ${studentName} Absent on ${date}`;
+            statusColor = '#F44336';
+            statusIcon = '✗';
+            htmlContent = `
+                <p style="color: ${statusColor}; font-weight: bold;">⚠️ ABSENCE ALERT</p>
+                <p>Student <strong>${studentName}</strong> was marked as <strong style="color: ${statusColor};">ABSENT</strong> on ${date}.</p>
+                <p>Please contact the school if this is an error.</p>
+            `;
+        } else if (status === 'Late') {
+            subject = `⏰ Late Attendance - ${studentName} Arrived Late on ${date}`;
+            statusColor = '#FF9800';
+            statusIcon = '⏰';
+            htmlContent = `
+                <p>Student <strong>${studentName}</strong> was marked as <strong style="color: ${statusColor};">LATE</strong>.</p>
+                <p>Arrival time: ${time}</p>
+                <p>Please ensure timely attendance going forward.</p>
+            `;
         }
 
-        const student = {
-            studentName,
-            studentNumber,
-            email,
-            parentPhone,
-            section,
-            status,
-            date
-        };
-
-        // Select appropriate template
-        const templateKey = status.toLowerCase();
-        if (!emailTemplates[templateKey]) {
-            return res.status(400).json({ error: 'Invalid status' });
-        }
-
-        const emailContent = emailTemplates[templateKey](student);
-
-        // Send email
         const mailOptions = {
-            from: process.env.EMAIL_USER || 'noreply@attendance.system',
+            from: process.env.EMAIL_USER,
             to: email,
-            subject: emailContent.subject,
-            html: emailContent.html
+            subject: subject,
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+                        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        .header { background: linear-gradient(135deg, #c8a2e0 0%, #d4b5f0 100%); color: white; padding: 30px; text-align: center; }
+                        .header h1 { margin: 0; font-size: 24px; }
+                        .content { padding: 30px; color: #333; line-height: 1.6; }
+                        .status-box { background: #f9f9f9; border-left: 5px solid ${statusColor}; padding: 15px; margin: 20px 0; border-radius: 5px; }
+                        .details { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                        .details p { margin: 10px 0; }
+                        .label { font-weight: bold; color: #4a3d6b; }
+                        .footer { background: #f0e6ff; padding: 15px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #e0d5f0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>📚 Attendance System</h1>
+                        </div>
+                        <div class="content">
+                            <h2 style="color: #4a3d6b;">Attendance Notification</h2>
+                            
+                            <div class="status-box">
+                                <p style="margin: 0; font-size: 18px;"><strong style="color: ${statusColor};">${statusIcon} Status: ${status}</strong></p>
+                            </div>
+
+                            <div class="details">
+                                <p><span class="label">Student Name:</span> ${studentName}</p>
+                                <p><span class="label">Student Number:</span> ${studentNumber}</p>
+                                <p><span class="label">Section:</span> ${section}</p>
+                                <p><span class="label">Date:</span> ${date}</p>
+                                <p><span class="label">Time:</span> ${time}</p>
+                                <p><span class="label">Parent Contact:</span> ${parentPhone}</p>
+                            </div>
+
+                            <div>
+                                ${htmlContent}
+                            </div>
+                        </div>
+                        <div class="footer">
+                            <p>This is an automated message from the Student Attendance System.</p>
+                            <p>Please do not reply to this email.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `
         };
 
         await transporter.sendMail(mailOptions);
-
         console.log(`📧 Email sent to ${email} - Status: ${status}`);
 
-        res.json({
-            success: true,
-            message: `Email notification sent to ${email}`,
-            status: status
-        });
+        res.json({ success: true, message: 'Email sent successfully' });
 
     } catch (error) {
-        console.error('Email sending error:', error);
-        res.status(500).json({
-            error: 'Failed to send email',
-            details: error.message
-        });
+        console.error('Email error:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// ============================================
-// HEALTH CHECK
-// ============================================
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'running',
-        server: 'Attendance System API',
-        timestamp: new Date().toISOString()
-    });
+/**
+ * Health check endpoint
+ */
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ============================================
-// ROOT ROUTE
-// ============================================
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
-
-// ============================================
-// ERROR HANDLING
-// ============================================
+/**
+ * Error handling
+ */
 app.use((err, req, res, next) => {
-    console.error('Server error:', err);
-    res.status(500).json({
-        error: 'Server error',
-        message: err.message
-    });
+    console.error(err.stack);
+    res.status(500).json({ error: 'Server error', message: err.message });
 });
 
-// ============================================
-// START SERVER
-// ============================================
-const PORT = process.env.PORT || 3000;
+// Start server
 app.listen(PORT, () => {
-    console.log('\n========================================');
-    console.log('🎓 ATTENDANCE SYSTEM SERVER RUNNING');
-    console.log('========================================');
-    console.log(`📍 URL: http://localhost:${PORT}`);
-    console.log(`⏰ Started: ${new Date().toLocaleString()}`);
-    console.log('========================================\n');
+    console.log(`
+╔════════════════════════════════════════════╗
+║  🎓 Attendance System Server Running       ║
+║  📍 http://localhost:${PORT}                  ║
+║  ✅ Ready to track attendance              ║
+╚════════════════════════════════════════════╝
+    `);
 });
+
+module.exports = app;
